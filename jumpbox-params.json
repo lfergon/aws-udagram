@@ -1,0 +1,18 @@
+[
+  {
+    "ParameterKey": "EnvironmentName",
+    "ParameterValue": "UdacityProjectLuis"
+  },
+  {
+    "ParameterKey": "NetworkAccessIP",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "JumpBoxSSHS3Bucket",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "JumpBoxSSHKeyName",
+    "ParameterValue": ""
+  }
+]

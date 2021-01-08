@@ -16,6 +16,11 @@ Parameters:
     Description: Bucket name for Application
     Type: String
 
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t3.medium
+
 Resources:
 
   LBSecurityGroup:
@@ -64,6 +69,18 @@ Resources:
   WebAppLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
+      ImageId: ami-07b4f3c02c7f83d59
+      KeyName:
+        Fn::ImportValue:
+          !Sub ${EnvironmentName}-JUMPBOX-SSH-KEY-NAME
+      IamInstanceProfile: !Ref IamInstanceProfile
+      SecurityGroups:
+        - Ref: WebServerSecGroup
+      InstanceType: !Ref InstanceType
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sdk"
+          Ebs:
+            VolumeSize: '10'
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
@@ -74,18 +91,6 @@ Resources:
           cd /var/www/html
           aws s3 cp s3://udacity-demo-1/udacity.zip .
           unzip -o udacity.zip
-      ImageId: ami-07b4f3c02c7f83d59
-      KeyName:
-        Fn::ImportValue:
-          !Sub ${EnvironmentName}-JUMPBOX-SSH-KEY-NAME
-      IamInstanceProfile: !Ref IamInstanceProfile
-      SecurityGroups:
-        - Ref: WebServerSecGroup
-      InstanceType: t3.medium
-      BlockDeviceMappings:
-        - DeviceName: "/dev/sdk"
-          Ebs:
-            VolumeSize: '10'
 
   WebAppGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -96,7 +101,7 @@ Resources:
       LaunchConfigurationName:
         Ref: WebAppLaunchConfig
       MinSize: '4'
-      MaxSize: '6'
+      MaxSize: '5'
       TargetGroupARNs:
         - Ref: WebAppTargetGroup
 
@@ -183,6 +188,32 @@ Resources:
       Path: "/"
       Roles:
         - !Ref UdacityS3ReadOnlyEC2
+
+  WebServerScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref WebAppGroup
+      Cooldown: '60'
+      ScalingAdjustment: '1'
+
+  CPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-up if CPU > 95% for 5 minutes
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: '300'
+      EvaluationPeriods: '3'
+      Threshold: '95'
+      AlarmActions:
+      - Ref: WebServerScaleUpPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value:
+            Ref: WebAppGroup
+      ComparisonOperator: GreaterThanThreshold
 
 Outputs:
   WebAppLB:

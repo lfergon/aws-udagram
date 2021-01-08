@@ -1,0 +1,185 @@
+Description: >
+  Luis Fernandez / UdacityProjectLuis
+  This template deploys a Jumpbox/Bastion Server
+
+Parameters:
+
+  EnvironmentName:
+    Description: An Environment name that will be prefixed to resources
+    Type: String
+
+  NetworkAccessIP:
+    Description: Source that has SSH access to the jump box host
+    Type: String
+
+  JumpBoxSSHS3Bucket:
+    Description: Bucket name for Application
+    Type: String
+
+  JumpBoxSSHKeyName:
+    Description: JumpBox Host SSH Key Name
+    Type: 'AWS::EC2::KeyPair::KeyName'
+
+Resources:
+  IamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+
+  IamPolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: root
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: "s3:*"
+            Resource: "*"
+      Roles:
+        - !Ref IamRole
+
+  IamInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref IamRole
+
+  JumpBoxSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SSH Access to JumpBox Instance
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${EnvironmentName}-VPC-ID"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: !Sub ${NetworkAccessIP}
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+
+  JumpBoxEC2InstanceOne:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - JumpBoxSecurityGroup
+      - IamInstanceProfile
+    Properties:
+      IamInstanceProfile: !Ref IamInstanceProfile
+      ImageId: ami-07b4f3c02c7f83d59
+      InstanceType: t3.small
+      KeyName: !Sub ${JumpBoxSSHKeyName}
+      SecurityGroupIds:
+        - Ref: JumpBoxSecurityGroup
+      SubnetId:
+        Fn::ImportValue:
+          !Sub "${EnvironmentName}-PUBLIC-ONE-SUBNET"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update -y
+          apt-get install unzip awscli -y
+          cd /home/ubuntu
+          aws s3 cp s3://${JumpBoxSSHS3Bucket}/${JumpBoxSSHKeyName}.pem /home/ubuntu
+          chmod 400 ${JumpBoxSSHKeyName}.pem
+
+  EIPOne:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain:
+        Fn::ImportValue:
+          !Sub "${EnvironmentName}-VPC-ID"
+
+  EIPAssociationOne:
+    Type: AWS::EC2::EIPAssociation
+    DependsOn:
+      - JumpBoxEC2InstanceOne
+      - EIPOne
+    Properties:
+      InstanceId:
+        Ref: JumpBoxEC2InstanceOne
+      AllocationId:
+        Fn::GetAtt:
+          - EIPOne
+          - AllocationId
+
+  JumpBoxEC2InstanceTwo:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - JumpBoxSecurityGroup
+      - IamInstanceProfile
+    Properties:
+      IamInstanceProfile: !Ref IamInstanceProfile
+      ImageId: ami-07b4f3c02c7f83d59
+      InstanceType: t3.small
+      KeyName: !Sub ${JumpBoxSSHKeyName}
+      SecurityGroupIds:
+        - Ref: JumpBoxSecurityGroup
+      SubnetId:
+        Fn::ImportValue:
+          !Sub "${EnvironmentName}-PUBLIC-TWO-SUBNET"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update -y
+          apt-get install unzip awscli -y
+          cd /home/ubuntu
+          aws s3 cp s3://${JumpBoxSSHS3Bucket}/${JumpBoxSSHKeyName}.pem /home/ubuntu
+          chmod 400 ${JumpBoxSSHKeyName}.pem
+
+  EIPTwo:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain:
+        Fn::ImportValue:
+          !Sub "${EnvironmentName}-VPC-ID"
+
+  EIPAssociationTwo:
+    Type: AWS::EC2::EIPAssociation
+    DependsOn:
+      - JumpBoxEC2InstanceTwo
+      - EIPTwo
+    Properties:
+      InstanceId:
+        Ref: JumpBoxEC2InstanceTwo
+      AllocationId:
+        Fn::GetAtt:
+          - EIPTwo
+          - AllocationId
+
+Outputs:
+  JumpBoxHostOneCIDR:
+    Description: A reference to the JumpBox Host CIDR
+    Value:
+      !Join
+      - ''
+      - - !GetAtt JumpBoxEC2InstanceOne.PrivateIp
+        - !Sub '/32'
+    Export:
+      Name: !Sub ${EnvironmentName}-JUMPBOX-ONE-HOST-CIDR
+  JumpBoxHost2CIDR:
+    Description: A reference to the JumpBox Host CIDR
+    Value:
+      !Join
+      - ''
+      - - !GetAtt JumpBoxEC2InstanceTwo.PrivateIp
+        - !Sub '/32'
+    Export:
+      Name: !Sub ${EnvironmentName}-JUMPBOX-TWO-HOST-CIDR
+  JumpBoxHostSSHKeyName:
+    Description: A reference to the JumpBox Host SSH Key Name
+    Value: !Sub ${JumpBoxSSHKeyName}
+    Export:
+      Name: !Sub ${EnvironmentName}-JUMPBOX-SSH-KEY-NAME

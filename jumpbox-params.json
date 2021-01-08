@@ -5,14 +5,14 @@
   },
   {
     "ParameterKey": "NetworkAccessIP",
-    "ParameterValue": ""
+    "ParameterValue": "35.155.48.45/32"
   },
   {
     "ParameterKey": "JumpBoxSSHS3Bucket",
-    "ParameterValue": ""
+    "ParameterValue": "udacity-lfergon-bucket"
   },
   {
     "ParameterKey": "JumpBoxSSHKeyName",
-    "ParameterValue": ""
+    "ParameterValue": "udacity-lfergon-aws"
   }
 ]

@@ -1,3 +1,7 @@
+Description: >
+  Luis Fernandez / UdacityProjectLuis
+  This template deploys the cloud infrastructure
+
 Parameters:
 
   EnvironmentName:

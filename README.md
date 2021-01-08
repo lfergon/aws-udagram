@@ -2,7 +2,7 @@
 
 ## Chart infrastructure
 
-   [Chart infrastructure](https://github.com/lfergon/aws-udagram/blob/master/udagram_route_table.jpeg)
+   ![Chart infrastructure](https://github.com/lfergon/aws-udagram/blob/master/udagram_route_table.jpeg?raw=true)
 
 ## Deploy infrastructure
 

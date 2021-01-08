@@ -2,5 +2,13 @@
   {
     "ParameterKey": "EnvironmentName",
     "ParameterValue": "UdacityProjectLuis"
+  },
+  {
+    "ParameterKey": "DNSProtocol",
+    "ParameterValue": "http://"
+  },
+  {
+    "ParameterKey": "ApplicationS3Bucket",
+    "ParameterValue": "udacity-website-project-lfergon"
   }
 ]

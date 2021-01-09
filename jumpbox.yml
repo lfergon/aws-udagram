@@ -168,7 +168,7 @@ Outputs:
       - - !GetAtt JumpBoxEC2InstanceOne.PrivateIp
         - !Sub '/32'
     Export:
-      Name: !Sub ${EnvironmentName}-JUMPBOX-ONE-HOST-CIDR
+      Name: !Sub ${EnvironmentName}-BASTION-ONE-HOST-CIDR
   JumpBoxHost2CIDR:
     Description: A reference to the JumpBox Host CIDR
     Value:
@@ -177,9 +177,9 @@ Outputs:
       - - !GetAtt JumpBoxEC2InstanceTwo.PrivateIp
         - !Sub '/32'
     Export:
-      Name: !Sub ${EnvironmentName}-JUMPBOX-TWO-HOST-CIDR
+      Name: !Sub ${EnvironmentName}-BASTION-TWO-HOST-CIDR
   JumpBoxHostSSHKeyName:
     Description: A reference to the JumpBox Host SSH Key Name
     Value: !Sub ${JumpBoxSSHKeyName}
     Export:
-      Name: !Sub ${EnvironmentName}-JUMPBOX-SSH-KEY-NAME
+      Name: !Sub ${EnvironmentName}-BASTION-SSH-KEY-NAME

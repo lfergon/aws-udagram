@@ -58,13 +58,13 @@ Resources:
           ToPort: 22
           CidrIp:
             Fn::ImportValue:
-              !Sub ${EnvironmentName}-JUMPBOX-ONE-HOST-CIDR
+              !Sub ${EnvironmentName}-BASTION-ONE-HOST-CIDR
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
           CidrIp:
             Fn::ImportValue:
-              !Sub ${EnvironmentName}-JUMPBOX-TWO-HOST-CIDR
+              !Sub ${EnvironmentName}-BASTION-TWO-HOST-CIDR
 
   WebAppLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration

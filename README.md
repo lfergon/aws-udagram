@@ -11,6 +11,10 @@
 
 ## Chart infrastructure
 
+### Bastion architecture approach based on:
+- [Bastion architecture approach](https://docs.aws.amazon.com/quickstart/latest/linux-bastion/architecture.html)
+
+
    ![Chart infrastructure](https://github.com/lfergon/aws-udagram/blob/master/udagram_route_table.jpeg?raw=true)
 
 ## Deploy infrastructure
@@ -24,5 +28,6 @@
 ## Deploy Web Applications, Autoscaling Groups, LoadBalancers
 
     3. ./utils/create.sh serversstack servers.yml servers-params.json
+
 
 
